@@ -141,11 +141,33 @@ async def process_paper(
             paper.raw_pdf_stored = True
             await db.commit()
 
-            # Step 2 — GROBID parse (we keep the parsed result in memory for the agent)
+            # Step 2 — GROBID parse (we keep the parsed result in memory for the agent).
+            # In prod we may not have a reachable GROBID (Hobby plan cost concerns).
+            # If parsing fails, fall back to metadata-only mode: skip sections, mark the
+            # paper READY using just the Semantic Scholar abstract/metadata. The Evaluate
+            # and Comprehend pages will still work for the metadata-driven views.
             await _set_status(db, paper, PaperStatus.PARSING, "Reading the paper structure")
-            parsed = await parse_pdf_to_paper(pdf_bytes)
-            await persist_sections(db, paper, parsed)
-            await db.commit()
+            parsed = None
+            try:
+                parsed = await parse_pdf_to_paper(pdf_bytes)
+                await persist_sections(db, paper, parsed)
+                await db.commit()
+            except Exception:
+                log.warning(
+                    "GROBID parse failed for paper=%s — continuing in metadata-only mode",
+                    paper.slug,
+                    exc_info=True,
+                )
+                # Don't persist sections, don't crash the workflow. Skip downstream steps
+                # that depend on parsed sections.
+                await _set_status(
+                    db,
+                    paper,
+                    PaperStatus.READY,
+                    "Ready (PDF parsing unavailable — using metadata only)",
+                )
+                await db.commit()
+                return
 
             # Step 3 — relevance check (only on user uploads of S2-sourced papers)
             should_check = (

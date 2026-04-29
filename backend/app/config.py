@@ -50,6 +50,17 @@ class Settings(BaseSettings):
             v = "postgresql+asyncpg://" + v[len("postgresql://"):]
         return v
 
+    @field_validator("grobid_url", mode="before")
+    @classmethod
+    def _normalize_grobid_url(cls, v: str) -> str:
+        # Railway's internal hosts (e.g. `grobid.railway.internal:8070`) get pasted
+        # into env vars without a protocol. Prepend http:// so httpx accepts it.
+        if not isinstance(v, str) or not v:
+            return v
+        if "://" not in v:
+            v = "http://" + v
+        return v.rstrip("/")
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _parse_cors(cls, v):
