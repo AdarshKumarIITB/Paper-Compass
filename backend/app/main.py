@@ -1,3 +1,5 @@
+import logging
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -11,9 +13,16 @@ from app.config import settings
 from app.modules.discover.semantic_scholar import close_client as close_ss_client
 
 
+# Force INFO logs to stdout so Railway captures them.
+logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+log = logging.getLogger("app.main")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    log.info("[main] lifespan startup — app ready to serve")
     yield
+    log.info("[main] lifespan shutdown")
     await close_ss_client()
 
 
@@ -38,8 +47,15 @@ async def healthz():
 # Serve the Vite-built frontend at the root when the static dir exists.
 # Place this AFTER the API router so /api/* always wins.
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+log.info(f"[main] STATIC_DIR={STATIC_DIR} exists={STATIC_DIR.is_dir()} serve_frontend={settings.serve_frontend}")
+
 if settings.serve_frontend and STATIC_DIR.is_dir():
-    app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+    assets_dir = STATIC_DIR / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+        log.info(f"[main] mounted /assets from {assets_dir}")
+    else:
+        log.warning(f"[main] {assets_dir} missing — skipping /assets mount")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def spa_fallback(full_path: str, request: Request):
@@ -55,3 +71,5 @@ if settings.serve_frontend and STATIC_DIR.is_dir():
         if index.is_file():
             return FileResponse(index)
         raise HTTPException(404)
+else:
+    log.warning("[main] frontend serving DISABLED — STATIC_DIR missing or serve_frontend=False")

@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies via pyproject.toml (hatchling needs the package source present)
-COPY backend/pyproject.toml backend/README.md* /app/
+COPY backend/pyproject.toml /app/
 COPY backend/app /app/app
 RUN pip install --no-cache-dir /app
 
