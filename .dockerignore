@@ -1,0 +1,31 @@
+# --- root ---
+.git
+.gitignore
+.idea
+.vscode
+*.md
+Docs/
+.claude/
+.DS_Store
+
+# --- frontend ---
+Paper Compass/node_modules
+Paper Compass/dist
+Paper Compass/.vite
+Paper Compass/.env
+Paper Compass/.env.*
+
+# --- backend ---
+backend/.venv
+backend/__pycache__
+backend/**/__pycache__
+backend/.env
+backend/.env.*
+backend/storage
+backend/tests
+backend/.pytest_cache
+backend/.ruff_cache
+
+# generic
+**/*.pyc
+**/.DS_Store

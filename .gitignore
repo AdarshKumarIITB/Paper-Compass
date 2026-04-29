@@ -1,0 +1,35 @@
+# --- secrets ---
+.env
+.env.*
+!.env.example
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+
+# --- node / vite ---
+node_modules/
+Paper Compass/dist/
+Paper Compass/.vite/
+
+# --- runtime data ---
+backend/storage/
+backend/data/
+
+# --- editors / OS ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# --- claude / planning artifacts (local) ---
+.claude/
