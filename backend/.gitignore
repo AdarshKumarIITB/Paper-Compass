@@ -3,4 +3,5 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
-storage/
+# Anchored — only ignore the top-level runtime storage dir, NOT app/modules/storage/
+/storage/
