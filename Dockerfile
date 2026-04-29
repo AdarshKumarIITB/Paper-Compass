@@ -16,9 +16,13 @@ RUN npm run build
 FROM python:3.11-slim AS backend
 WORKDIR /app
 
-# System deps for psycopg / asyncpg / lxml
+# System deps:
+#   build-essential / libpq-dev — psycopg, asyncpg native bits
+#   libxml2-dev / libxslt1-dev — lxml
+#   libcairo2 — cairosvg (SVG → PNG rendering for visuals)
+#   curl — health probes / debugging
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential libpq-dev libxml2-dev libxslt1-dev curl \
+      build-essential libpq-dev libxml2-dev libxslt1-dev libcairo2 curl \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies via pyproject.toml (hatchling needs the package source present)
